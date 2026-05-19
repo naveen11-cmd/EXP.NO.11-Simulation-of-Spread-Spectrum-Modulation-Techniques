@@ -1,123 +1,79 @@
-# EXP.NO.11-Simulation-of-Spread-Spectrum-Modulation-Techniques
+## Simulation of Spread Spectrum Modulation Techniques
 
-11.Simulation of Spread Spectrum Modulation Techniques
 
-# AIM
- To simulate the process of Direct Sequence Spread Spectrum (DSSS) modulation using Binary Phase Shift Keying (BPSK).
+### AIM
+To simulate the process of Direct Sequence Spread Spectrum (DSSS) modulation usWing Binary Phase Shift Keying (BPSK).
+### SOFTWARE REQUIRED
+Python IDE with numPy and Matplotlib
+### ALGORITHMS
+Generate random binary data.   
+Create a PN sequence of length 8.  
+Perform BPSK modulation on the data (0 → -1, 1 → +1).  
+Spread the BPSK modulated signal using the PN sequence.  
+Modulate the spread signal using a BPSK carrier.  
+Plot the DSSS spread signal and the BPSK modulated carrier waveform  
 
-# SOFTWARE REQUIRED
- Python (Version 3.x)
- NumPy (for numerical operations)
- Matplotlib (for plotting the graphs)
-
-# ALGORITHMS
- 1. Generate random binary data.
- 2. Create a PN sequence of length 8.
- 3. Perform BPSK modulation on the data (0 → -1, 1 → +1).
- 4. Spread the BPSK modulated signal using the PN sequence.
- 5. Modulate the spread signal using a BPSK carrier.
- 6. Plot the DSSS spread signal and the BPSK modulated carrier waveform.
-
-# PROGRAM
-
-```
+### PROGRAM
+```python
 import numpy as np
 import matplotlib.pyplot as plt
 
-# System Parameters
-data_length = 4                # Number of bits
-chips_per_bit = 8              # PN sequence length
-bit_rate = 1e3                 # 1 kbps
+#  System Parameters 
+data_length = 4
+chips_per_bit = 8
+bit_rate = 1000
+carrier_freq = 20000
+sample_rate = 160000
+
 chip_rate = bit_rate * chips_per_bit
-carrier_freq = 20e3            # 20 kHz carrier
-sample_rate = 160e3            # 160 kHz sampling rate
 samples_per_chip = int(sample_rate / chip_rate)
 
-# Generate random binary data
-def generate_data(length):
-    return np.random.randint(0, 2, length)
+#  Generate Random Data 
+data = np.random.randint(0,2,data_length)
 
-import numpy as np
-import matplotlib.pyplot as plt
+# Generate PN Sequence 
+pn_seq = np.random.choice([-1,1], chips_per_bit)
 
-# System Parameters
-data_length = 4                # Number of bits
-chips_per_bit = 8              # PN sequence length
-bit_rate = 1e3                 # 1 kbps
-chip_rate = bit_rate * chips_per_bit
-carrier_freq = 20e3            # 20 kHz carrier
-sample_rate = 160e3            # 160 kHz sampling rate
-samples_per_chip = int(sample_rate / chip_rate)
+print("Original Data Bits :", data)
+print("PN Sequence :", pn_seq)
 
-# Generate random binary data
-def generate_data(length):
-    return np.random.randint(0, 2, length)
+#  BPSK Mapping 
+def bpsk_map(bit):
+    return 2*bit - 1
 
-# Generate PN sequence: ±1 chips
-def generate_pn_sequence(length):
-    return np.random.choice([-1, 1], length)
+#  DSSS Spreading
+spread_signal = []
 
-# BPSK mapping: 0 → -1, 1 → +1
-def bpsk_modulate(bit):
-    return 2 * bit - 1
+for bit in data:
+    bpsk_bit = bpsk_map(bit)
+    spread_signal.extend(bpsk_bit * pn_seq)
 
-# DSSS spreading
-def dsss_spread(data, pn_sequence):
-    spread = []
-    for bit in data:
-        bpsk_bit = bpsk_modulate(bit)
-        spread.extend(bpsk_bit * pn_sequence)
-    return np.array(spread)
+spread_signal = np.array(spread_signal)
 
-# BPSK carrier modulation of spread signal
-def carrier_modulate(spread_signal, carrier_freq, sample_rate, samples_per_chip):
-    total_samples = len(spread_signal) * samples_per_chip
-    t = np.arange(total_samples) / sample_rate
-    carrier_wave = np.cos(2 * np.pi * carrier_freq * t)
+# Carrier Modulation 
+chip_samples = np.repeat(spread_signal, samples_per_chip)
 
-    # Repeat each chip to match carrier sampling
-    chip_samples = np.repeat(spread_signal, samples_per_chip)
-    return chip_samples * carrier_wave, t
+t = np.arange(len(chip_samples)) / sample_rate
 
-# Main function
-if __name__ == "__main__":
-    # Generate input
-    data = generate_data(data_length)
-    pn_seq = generate_pn_sequence(chips_per_bit)
+carrier = np.cos(2*np.pi*carrier_freq*t)
 
-    print("Original Data Bits:     ", data)
-    print("PN Sequence:            ", pn_seq)
-    
-    # DSSS spreading
-    spread_signal = dsss_spread(data, pn_seq)
+bpsk_waveform = chip_samples * carrier
 
-    # BPSK Carrier modulation
-    bpsk_waveform, t = carrier_modulate(spread_signal, carrier_freq, sample_rate, samples_per_chip)
+#  PLOTS
 
-    # Plot DSSS spread signal (chip values)
-    plt.figure(figsize=(12, 3))
-    plt.plot(spread_signal, drawstyle='steps-mid')
-    plt.title("DSSS Spread Signal (Baseband)")
-    plt.xlabel("Chip Index")
-    plt.ylabel("Amplitude")
-    plt.grid(True)
-    plt.tight_layout()
+plt.figure(figsize=(10,8))
 
-    # Plot BPSK modulated carrier waveform
-    plt.figure(figsize=(12, 3))
-    plt.plot(t, bpsk_waveform)
-    plt.title("BPSK Modulated Waveform (Carrier)")
-    plt.xlabel("Time (s)")
-    plt.ylabel("Amplitude")
-    plt.grid(True)
-    plt.tight_layout()
-    plt.show()
+# Spread signal
+plt.subplot(2,1,1)
+plt.step(range(len(spread_signal)), spread_signal, where='mid')
+plt.title("DSSS Spread Signal (Baseband)")
+plt.xlabel("Chip Index")
+plt.ylabel("Amplitude")
+plt.grid()
 ```
+### OUTPUT
+![Screenshot 2025-05-19 182835](https://github.com/user-attachments/assets/dae670f2-2628-48da-a8ef-d9a8ca909c65)
 
-# OUTPUT
-<img width="1261" height="636" alt="image" src="https://github.com/user-attachments/assets/3f086c77-ae2f-45bb-9164-d9b277d00dd8" />
+### RESULT
 
- 
-# RESULT
-The DSSS spread signal is displayed as a plot showing the baseband spread signal after applying the PN sequence. The BPSK modulated signal is shown as a plot of the BPSK
- modulated carrier waveform
+The direct sequence spread spectrum (DSSS) signal is illustrated as a plot representing the baseband signal after it has been spread using a pseudorandom noise (PN) sequence. Additionally, the BPSK-modulated signal is depicted through a plot showcasing the modulated carrier waveform resulting from Binary Phase Shift Keying.
